@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 jni = "0.16.0"
-libflate = "1.0.1"
+flate2 = "1.0"
 cfb8 = "0.4.0"
 aes = "0.4.0"
 sha2 = "0.9.1"

@@ -72,11 +72,12 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_process(env: JNIEnv
         // Decrypt first then decompress
         let decrypted = context.process(data);
         let decompressed = decompress(decrypted.as_slice());
-        let processed = decompressed.as_slice();
 
-        result_ptr = processed.as_ptr();
-        result_size = processed.len();
-        mem::forget(processed);
+        println!("Returning decompressed data");
+
+        result_ptr = decompressed.as_ptr();
+        result_size = decompressed.len();
+        mem::forget(decompressed);
     }
 
     // Create response object
