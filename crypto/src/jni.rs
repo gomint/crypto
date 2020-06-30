@@ -1,26 +1,46 @@
 use jni::JNIEnv;
 
-use jni::objects::{JClass};
+use jni::objects::{JClass, JValue};
 use jni::sys::{jlong, jboolean, jobject, jbyteArray};
 
-use crate::context::{create_context, destroy_context, get_context};
-use std::slice::from_raw_parts;
+use crate::compression::{compress, decompress};
+use std::{mem, slice};
+use crate::encryption::{CryptoT, Crypto};
 
 #[no_mangle]
-pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_createNewContext(env: JNIEnv, class: JClass, encryption_mode_toggle: jboolean, key: jbyteArray, iv: jbyteArray) -> jlong {
+pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_createNewContext(_env: JNIEnv, _class: JClass, encryption_mode_toggle: jboolean) -> jlong {
+    let ctx = Box::new(Crypto {
+        encryption_mode_toggle: encryption_mode_toggle != 0,
+        counter: 0,
+        aes: None,
+        key: None,
+    });
+
+    let a = ctx.as_ref() as *const Crypto;
+
+    mem::forget(ctx);
+    a as i64
+}
+
+#[no_mangle]
+pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_enableCrypto(env: JNIEnv, _class: JClass, ctx: jlong, key: jbyteArray, iv: jbyteArray) {
     let key_vec = env.convert_byte_array(key).unwrap();
     let iv_vec = env.convert_byte_array(iv).unwrap();
 
-    create_context(encryption_mode_toggle != 0, key_vec.as_slice(), iv_vec.as_slice())
+    let raw_ptr =  ctx as *mut Crypto;
+    let context: &mut Crypto = unsafe{ raw_ptr.as_mut().unwrap() };
+
+    context.init_state(key_vec.as_slice(), iv_vec.as_slice());
 }
 
 #[no_mangle]
-pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_destroyContext(env: JNIEnv, class: JClass, ctx: jlong) {
-    destroy_context(ctx)
+pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_destroyContext(_env: JNIEnv, _class: JClass, ctx: jlong) {
+    let raw_ptr =  ctx as *mut Crypto;
+    mem::drop(raw_ptr)
 }
 
 #[no_mangle]
-pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_process(env: JNIEnv, class: JClass, ctx: jlong, memory_pointer: jobject) -> jobject {
+pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_process(env: JNIEnv, _class: JClass, ctx: jlong, memory_pointer: jobject) -> jobject {
     // Get the input address and size
     let res_mem_address = env.call_method(memory_pointer, "getAddress", "()J", &[]);
     let mem_address: i64 = res_mem_address.unwrap().j().unwrap();
@@ -29,24 +49,40 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_process(env: JNIEnv
     let size: i32 = res_size.unwrap().i().unwrap();
 
     // Build &[u8] from the given memory pointer and size
-    let data: &[u8];
-    unsafe {
-        data = from_raw_parts(mem_address as *const u8, size as usize);
-    }
+    let data: &mut [u8] = unsafe { slice::from_raw_parts_mut(mem_address as *mut u8, size as usize) };
+
+    let result_ptr: *const u8;
+    let result_size: usize;
 
     // Get the context which called
-    let context = get_context(ctx);
+    let raw_ptr =  ctx as *mut Crypto;
+    let context: &mut Crypto = unsafe{ raw_ptr.as_mut().unwrap() };
     if context.encryption_mode_toggle {
+        println!("Got data to encrypt: {:x?}", data);
 
+        // Compress first then encrypt
+        let mut compressed = compress(data);
+        println!("Compressed data: {:x?}", compressed);
+        let processed = context.process(compressed.as_mut_slice());
+
+        result_ptr = processed.as_ptr();
+        result_size = processed.len();
+        mem::forget(processed);
     } else {
+        // Decrypt first then decompress
+        let decrypted = context.process(data);
+        let decompressed = decompress(decrypted.as_slice());
+        let processed = decompressed.as_slice();
 
+        result_ptr = processed.as_ptr();
+        result_size = processed.len();
+        mem::forget(processed);
     }
 
     // Create response object
     let res_memory_pointer_class = env.get_object_class(memory_pointer);
-    if res_memory_pointer_class.is_err() {
+    if res_memory_pointer_class.is_err() {}
 
-    }
-
-    env.new_object(res_memory_pointer_class.unwrap(), "(JI)V", &[])
+    let arguments: &[JValue] = &[JValue::from(result_ptr as i64), JValue::from(result_size as i32)];
+    env.new_object(res_memory_pointer_class.unwrap(), "(JI)V", arguments).unwrap().into_inner()
 }

@@ -5,30 +5,36 @@ import io.netty.buffer.Unpooled;
 
 public class Processor {
 
+  private static final NativeCode LOADER = new NativeCode("crypto");
+
   static {
-    System.loadLibrary("crypto");
+    if ( !LOADER.load() ) {
+      throw new RuntimeException("Could not load crypto native extension");
+    }
   }
 
   private final long ctx;
 
-  public Processor(boolean encryptionModeToggle, byte[] key, byte[] iv) {
-    this.ctx = NativeProcessor.createNewContext(encryptionModeToggle, key, iv);
+  public Processor(boolean encryptionModeToggle) {
+    this.ctx = NativeProcessor.createNewContext(encryptionModeToggle);
+  }
+
+  public void enableCrypto(byte[] key, byte[] iv) {
+    NativeProcessor.enableCrypto(this.ctx, key, iv);
   }
 
   public ByteBuf process(ByteBuf data) {
-    // Ensure that we hold the input buffer until we are done
-    data.retain();
-
     try {
-      long pointerAddress = data.memoryAddress();
+      long pointerAddress = data.memoryAddress() + data.readerIndex();
       int size = data.readableBytes();
 
       SizedMemoryPointer dataPointer = new SizedMemoryPointer(pointerAddress, size);
       SizedMemoryPointer processedDataPointer = NativeProcessor.process(this.ctx, dataPointer);
 
-      return Unpooled.wrappedBuffer(processedDataPointer.getAddress(), processedDataPointer.getSize(), true);
+      ByteBuf output = Unpooled.wrappedBuffer(processedDataPointer.getAddress(), processedDataPointer.getSize(), true);
+      return output.retain();
     } finally {
-      data.release(); // Release the recycle safeguard
+      data.release(); // Release the input since we are done with it and don't need it anymore
     }
   }
 

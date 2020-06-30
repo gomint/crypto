@@ -8,11 +8,18 @@ public class NativeProcessor {
      * Construct new context in native
      *
      * @param encryptionModeToggle true for encryption and compression, false for decryption and decompression
-     * @param key to use for encrypt / decrypt
-     * @param iv to use for init of random data
      * @return reference to the native struct
      */
-    static native long createNewContext(boolean encryptionModeToggle, byte[] key, byte[] iv);
+    static native long createNewContext(boolean encryptionModeToggle);
+
+    /**
+     * Enable the cryptographic part of the extension
+     *
+     * @param ctx which should be enabled for crypto
+     * @param key to use for encrypt / decrypt
+     * @param iv to use for init of random data
+     */
+    static native void enableCrypto(long ctx, byte[] key, byte[] iv);
 
     /**
      * Destroy the context given

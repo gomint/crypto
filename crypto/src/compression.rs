@@ -1,24 +1,25 @@
-use std::io::{self, Read, Write};
+use std::io::{Read, Write};
 use libflate::deflate::{Encoder, Decoder};
 
-pub async fn decompress(encoded_data: Vec<u8>) -> io::Result<Vec<u8>> {
+pub fn decompress(data: &[u8]) -> Vec<u8> {
     // Decoding
-    let mut decoder = Decoder::new(&encoded_data[..]);
+    let mut decoder = Decoder::new(&data[..]);
     let mut decoded_data = Vec::new();
     let result = decoder.read_to_end(&mut decoded_data);
 
     // Check for error
     if result.is_err() {
-        Err(result.err().unwrap())
+        return Vec::with_capacity(0)
     } else {
-        Ok(decoded_data)
+        decoded_data
     }
 }
 
-pub async fn compress(decoded_data: Vec<u8>) -> io::Result<Vec<u8>> {
-    // Decoding
+pub fn compress(data: &[u8]) -> Vec<u8> {
+    // Compression
     let mut encoder = Encoder::new(Vec::new());
-    encoder.write_all(&decoded_data[..]).unwrap();
+    encoder.write_all(&data[..]).unwrap();
 
-    encoder.finish().into_result()
+    // Return slice
+    encoder.finish().into_result().unwrap()
 }

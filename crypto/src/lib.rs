@@ -1,7 +1,7 @@
-#[macro_use]
-extern crate lazy_static;
+#[global_allocator]
+static GLOBAL: System = std::alloc::System;
 
-mod context;
+use std::alloc::System;
 mod encryption;
 mod jni;
 mod compression;
