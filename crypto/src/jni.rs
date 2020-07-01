@@ -58,11 +58,8 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_process(env: JNIEnv
     let raw_ptr =  ctx as *mut Crypto;
     let context: &mut Crypto = unsafe{ raw_ptr.as_mut().unwrap() };
     if context.encryption_mode_toggle {
-        println!("Got data to encrypt: {:x?}", data);
-
         // Compress first then encrypt
         let mut compressed = compress(data);
-        println!("Compressed data: {:x?}", compressed);
         let processed = context.process(compressed.as_mut_slice());
 
         result_ptr = processed.as_ptr();
@@ -72,8 +69,6 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_process(env: JNIEnv
         // Decrypt first then decompress
         let decrypted = context.process(data);
         let decompressed = decompress(decrypted.as_slice());
-
-        println!("Returning decompressed data");
 
         result_ptr = decompressed.as_ptr();
         result_size = decompressed.len();

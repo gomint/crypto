@@ -36,16 +36,10 @@ impl CryptoT for Crypto {
 
         self.aes = a.ok();
         self.key = Option::from(Vec::from(key));
-
-        println!("Crypto state on init: {} :: {} :: {} :: {}", self.encryption_mode_toggle, self.counter, self.key.is_some(), self.aes.is_some());
     }
 
     fn process(&mut self, data: &mut [u8]) -> Box<Vec<u8>> {
-        println!("Crypto state on init: {} :: {} :: {} :: {}", self.encryption_mode_toggle, self.counter, self.key.is_some(), self.aes.is_some());
-        println!("Got input data: {:x?}", data);
-
         if self.aes.is_none() {
-            println!("Crypto not enabled, we passthrough");
             return Box::from(data.to_vec())
         }
 
@@ -69,14 +63,9 @@ impl CryptoT for Crypto {
 
             let result = &hasher.finalize()[..8];
 
-            println!("Got input data (after hash): {:x?}, {}", data, data.len());
-
             let mut input: Box<Vec<u8>>  = Box::from(Vec::new());
             input.write_all(data.as_ref()).unwrap();
             input.write_all(&result).unwrap();
-
-            println!("Output data: {:x?}", input);
-            println!("Hash for data: {:x?}", result);
 
             aes.encrypt(input.as_mut_slice());
             return input;
@@ -95,7 +84,6 @@ impl CryptoT for Crypto {
         let result = &hasher.finalize()[..8];
 
         if expected != result {
-            println!("Incoming data: {:x?}", data);
             println!("Not matching hash: {:x?} / {:x?}", expected, result);
             return Box::new(Vec::new())
         }
