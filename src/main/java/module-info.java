@@ -7,8 +7,5 @@ module gomint.crypto {
   requires com.google.common;
   requires io.netty.common;
 
-  // Logging modules
-  requires slf4j.api;
-
   exports io.gomint.crypto;
 }
