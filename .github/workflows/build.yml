@@ -14,6 +14,7 @@ jobs:
           target: x86_64-unknown-linux-gnu
           override: true
       - uses: actions-rs/cargo@v1
+        working-directory: ./crypto
         with:
           use-cross: true
           command: build
@@ -27,6 +28,7 @@ jobs:
         with:
           toolchain: stable
       - uses: actions-rs/cargo@v1
+        working-directory: ./crypto
         with:
           command: build
           args: --release
