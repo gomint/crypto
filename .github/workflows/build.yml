@@ -14,11 +14,11 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: crypto.dll
-          path: src/main/resources/crypto.dll
+          path: src/main/resources
       - uses: actions/download-artifact@master
         with:
           name: libcrypto.so
-          path: src/main/resources/libcrypto.so
+          path: src/main/resources
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v1
         with:
