@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install xmllint
+        run: sudo apt-get install -y gdb-mingw-w64 gcc-mingw-w64-x86-64
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
