@@ -23,14 +23,15 @@ jobs:
         run: sudo apt-get install -y gdb-mingw-w64 gcc-mingw-w64-x86-64 tree
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           target: x86_64-pc-windows-gnu
           override: true
       - uses: actions-rs/cargo@v1
         with:
           use-cross: true
-          command: build
-          args: --target x86_64-pc-windows-gnu --release --manifest-path crypto/Cargo.toml
+          command: install
+          args: xargo
+      - run: xargo build --target x86_64-pc-windows-gnu --release --manifest-path crypto/Cargo.toml
       - uses: actions/upload-artifact@master
         with:
           name: crypto.dll
