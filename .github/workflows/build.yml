@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install MingW
-        run: sudo apt-get install -y gdb-mingw-w64 gcc-mingw-w64-x86-64 tree
+        run: sudo apt-get install -y gdb-mingw-w64 gcc-mingw-w64-x86-64 tree strip
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -32,6 +32,7 @@ jobs:
           command: install
           args: xargo
       - run: xargo build --target x86_64-pc-windows-gnu --release --manifest-path crypto/Cargo.toml
+      - run: strip -s -w -K Java_* crypto/target/x86_64-pc-windows-gnu/release/crypto.dll
       - uses: actions/upload-artifact@master
         with:
           name: crypto.dll
@@ -42,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install MingW
-        run: sudo apt-get install -y tree
+        run: sudo apt-get install -y tree strip
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
