@@ -33,27 +33,24 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
   windows_x64:
     name: Windows x64
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install MingW
-        run: sudo apt-get install -y gdb-mingw-w64 gcc-mingw-w64-x86-64 tree binutils
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-          target: x86_64-pc-windows-gnu
+          target: x86_64-pc-windows-msvc
           override: true
       - uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: install
           args: xargo
-      - run: xargo build --target x86_64-pc-windows-gnu --release --manifest-path crypto/Cargo.toml
-      - run: strip -s -w -K Java_* crypto/target/x86_64-pc-windows-gnu/release/crypto.dll
+      - run: xargo build --target x86_64-pc-windows-msvc --release --manifest-path crypto/Cargo.toml
       - uses: actions/upload-artifact@master
         with:
           name: crypto.dll
-          path: crypto/target/x86_64-pc-windows-gnu/release/crypto.dll
+          path: crypto/target/x86_64-pc-windows-msvc/release/crypto.dll
   linux_x64:
     name: Linux x64
     runs-on: ubuntu-latest
