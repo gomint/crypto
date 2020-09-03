@@ -53,15 +53,16 @@ public final class NativeCode {
             }
 
             if ( !loaded ) {
-                String ending = SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ? ".dll" : ".so";
-                try ( InputStream soFile = this.getInput( ending ) ) {
+                String suffix = SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ? ".dll" : ".so";
+                String prefix = SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ? "" : "lib";
+                try ( InputStream soFile = this.getInput( prefix, suffix ) ) {
                     if ( soFile == null ) {
                         loaded = false;
                         return false;
                     }
 
                     // Else we will create and copy it to a temp file
-                    File temp = File.createTempFile( fullName, ending );
+                    File temp = File.createTempFile( fullName, suffix );
 
                     // Don't leave cruft on filesystem
                     temp.deleteOnExit();
@@ -83,11 +84,11 @@ public final class NativeCode {
         return loaded;
     }
 
-    private InputStream getInput( String ending ) {
-        InputStream in = NativeCode.class.getClassLoader().getResourceAsStream( this.name + ending );
+    private InputStream getInput( String prefix, String suffix ) {
+        InputStream in = NativeCode.class.getClassLoader().getResourceAsStream( prefix + this.name + suffix );
         if ( in == null ) {
             try {
-                in = new FileInputStream( "./src/main/resources/" + this.name + ending );
+                in = new FileInputStream( "./src/main/resources/" + prefix + this.name + suffix );
             } catch ( FileNotFoundException e ) {
                 // Ignored -.-
             }
