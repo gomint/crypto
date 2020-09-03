@@ -31,7 +31,10 @@ jobs:
           use-cross: true
           command: build
           args: --target x86_64-pc-windows-gnu --release --manifest-path crypto/Cargo.toml
-      - run: tree
+      - uses: actions/upload-artifact@master
+        with:
+          name: crypto.dll
+          path: crypto/target/x86_64-pc-windows-gnu/release/crypto.dll
   linux_x64:
     name: Linux x64
     runs-on: ubuntu-latest
@@ -48,4 +51,7 @@ jobs:
         with:
           command: build
           args: --target x86_64-unknown-linux-gnu --release --manifest-path crypto/Cargo.toml
-      - run: tree
+      - uses: actions/upload-artifact@master
+        with:
+          name: libcrypto.so
+          path: crypto/target/x86_64-unknown-linux-gnu/release/libcrypto.so
