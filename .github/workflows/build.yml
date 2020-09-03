@@ -3,6 +3,17 @@ on: [push]
 name: CI
 
 jobs:
+  maven:
+    needs:
+      - windows_x64
+      - linux_x64
+    name: Maven
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install MingW
+        run: sudo apt-get install -y tree
+      - run: tree
   windows_x64:
     name: Windows x64
     runs-on: ubuntu-latest
