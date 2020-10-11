@@ -62,13 +62,27 @@ impl CryptoT for Crypto {
             hasher.update(data.as_ref());
             hasher.update(self.key.as_ref().unwrap());
 
-            let result = &hasher.finalize()[..8];
+            let result;
+            if self.debug {
+                let mut start = std::time::Instant::now();
+                result = &hasher.finalize()[..8];
+                println!("sha256 took {:?}", start.elapsed());
+            } else {
+                result = &hasher.finalize()[..8];
+            }
 
             let mut input: Box<Vec<u8>>  = Box::from(Vec::new());
             input.write_all(data.as_ref()).unwrap();
             input.write_all(&result).unwrap();
 
-            aes.encrypt(input.as_mut_slice());
+            if self.debug {
+                let mut start = std::time::Instant::now();
+                aes.encrypt(input.as_mut_slice());
+                println!("aes took {:?}", start.elapsed());
+            } else {
+                aes.encrypt(input.as_mut_slice());
+            }
+
             return input;
         }
 
