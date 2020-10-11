@@ -23,6 +23,10 @@ public class Processor {
     NativeProcessor.enableCrypto(this.ctx, key, iv);
   }
 
+  public void debug(boolean debug) {
+    NativeProcessor.debug(this.ctx, debug);
+  }
+
   public ByteBuf process(ByteBuf data) {
     try {
       long pointerAddress = data.memoryAddress() + data.readerIndex();
