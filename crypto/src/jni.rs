@@ -14,6 +14,7 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_createNewContext(_e
         counter: 0,
         aes: None,
         key: None,
+        debug: false,
     });
 
     let a = ctx.as_ref() as *const Crypto;
@@ -40,6 +41,13 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_destroyContext(_env
 }
 
 #[no_mangle]
+pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_debug(_env: JNIEnv, _class: JClass, ctx: jlong, debug_mode: jboolean) {
+    let raw_ptr =  ctx as *mut Crypto;
+    let context: &mut Crypto = unsafe{ raw_ptr.as_mut().unwrap() };
+    context.debug = debug_mode != 0;
+}
+
+#[no_mangle]
 pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_process(env: JNIEnv, _class: JClass, ctx: jlong, memory_pointer: jobject) -> jobject {
     // Get the input address and size
     let res_mem_address = env.call_method(memory_pointer, "getAddress", "()J", &[]);
@@ -59,20 +67,46 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_process(env: JNIEnv
     let context: &mut Crypto = unsafe{ raw_ptr.as_mut().unwrap() };
     if context.encryption_mode_toggle {
         // Compress first then encrypt
-        let mut compressed = compress(data);
-        let processed = context.process(compressed.as_mut_slice());
+        if context.debug {
+            let mut start = std::time::Instant::now();
+            let mut compressed = compress(data);
+            println!("compression of {:?} bytes took {:?}", size, start.elapsed());
+            let compressed_size = compressed.len();
+            start = std::time::Instant::now();
+            let processed = context.process(compressed.as_mut_slice());
+            println!("encryption of {:?} bytes took {:?}", compressed_size, start.elapsed());
+            result_ptr = processed.as_ptr();
+            result_size = processed.len();
+            mem::forget(processed);
+        } else {
+            let mut compressed = compress(data);
+            let processed = context.process(compressed.as_mut_slice());
 
-        result_ptr = processed.as_ptr();
-        result_size = processed.len();
-        mem::forget(processed);
+            result_ptr = processed.as_ptr();
+            result_size = processed.len();
+            mem::forget(processed);
+        }
     } else {
         // Decrypt first then decompress
-        let decrypted = context.process(data);
-        let decompressed = decompress(decrypted.as_slice());
+        if context.debug {
+            let mut start = std::time::Instant::now();
+            let decrypted = context.process(data);
+            println!("decryption of {:?} bytes took {:?}", size, start.elapsed());
+            let compressed_size = decrypted.len();
+            start = std::time::Instant::now();
+            let decompressed = decompress(decrypted.as_slice());
+            println!("decompression of {:?} bytes took {:?}", compressed_size, start.elapsed());
+            result_ptr = decompressed.as_ptr();
+            result_size = decompressed.len();
+            mem::forget(decompressed);
+        } else {
+            let decrypted = context.process(data);
+            let decompressed = decompress(decrypted.as_slice());
 
-        result_ptr = decompressed.as_ptr();
-        result_size = decompressed.len();
-        mem::forget(decompressed);
+            result_ptr = decompressed.as_ptr();
+            result_size = decompressed.len();
+            mem::forget(decompressed);
+        }
     }
 
     // Create response object

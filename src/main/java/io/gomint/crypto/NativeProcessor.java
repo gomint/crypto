@@ -37,4 +37,12 @@ public class NativeProcessor {
      */
     static native SizedMemoryPointer process(long ctx, SizedMemoryPointer pointer);
 
+    /**
+     * Enable or disable debug (this also gives performance metrics)
+     *
+     * @param ctx for which we want to change the debug flag
+     * @param debug true when enabled, false otherwise
+     */
+    static native void debug(long ctx, boolean debug);
+
 }
