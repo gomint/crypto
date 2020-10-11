@@ -1,4 +1,4 @@
-use aes::Aes256;
+use aesni::Aes256;
 use cfb8::Cfb8;
 use cfb8::stream_cipher::{NewStreamCipher, StreamCipher, InvalidKeyNonceLength};
 use sha2::{Sha256, Digest};

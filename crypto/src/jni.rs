@@ -12,8 +12,8 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_createNewContext(_e
     let ctx = Box::new(Crypto {
         encryption_mode_toggle: encryption_mode_toggle != 0,
         counter: 0,
-        aes: None,
         key: None,
+        aes: None,
         debug: false,
     });
 
@@ -69,7 +69,7 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_process(env: JNIEnv
         // Compress first then encrypt
         if context.debug {
             let mut start = std::time::Instant::now();
-            let mut compressed = compress(data);
+            let mut compressed = compress(data, size);
             println!("compression of {:?} bytes took {:?}", size, start.elapsed());
             let compressed_size = compressed.len();
             start = std::time::Instant::now();
@@ -79,7 +79,7 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_process(env: JNIEnv
             result_size = processed.len();
             mem::forget(processed);
         } else {
-            let mut compressed = compress(data);
+            let mut compressed = compress(data, size);
             let processed = context.process(compressed.as_mut_slice());
 
             result_ptr = processed.as_ptr();

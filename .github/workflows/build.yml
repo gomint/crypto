@@ -47,6 +47,8 @@ jobs:
           command: install
           args: xargo
       - run: xargo build --target x86_64-pc-windows-msvc --release --manifest-path crypto/Cargo.toml
+        env:
+          RUSTFLAGS: "-C target-feature=+aes,+ssse3"
       - uses: actions/upload-artifact@master
         with:
           name: crypto.dll
@@ -69,6 +71,8 @@ jobs:
           command: install
           args: xargo
       - run: xargo build --target x86_64-unknown-linux-gnu --release --manifest-path crypto/Cargo.toml
+        env:
+          RUSTFLAGS: "-C target-feature=+aes,+ssse3"
       - run: strip -s -w -K Java_* crypto/target/x86_64-unknown-linux-gnu/release/libcrypto.so
       - uses: actions/upload-artifact@master
         with:
