@@ -1,7 +1,7 @@
 use jni::JNIEnv;
 
 use jni::objects::{JClass, JValue};
-use jni::sys::{jlong, jboolean, jobject, jbyteArray};
+use jni::sys::{jlong, jboolean, jobject, jbyteArray, jint};
 
 use crate::compression::{compress, decompress};
 use std::{mem, slice};
@@ -15,6 +15,7 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_createNewContext(_e
         key: None,
         aes: None,
         debug: false,
+        prealloc_size: 2*1024*1024,
     });
 
     let a = ctx.as_ref() as *const Crypto;
@@ -45,6 +46,13 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_debug(_env: JNIEnv,
     let raw_ptr =  ctx as *mut Crypto;
     let context: &mut Crypto = unsafe{ raw_ptr.as_mut().unwrap() };
     context.debug = debug_mode != 0;
+}
+
+#[no_mangle]
+pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_preallocSize(_env: JNIEnv, _class: JClass, ctx: jlong, prealloc_size: jint) {
+    let raw_ptr =  ctx as *mut Crypto;
+    let context: &mut Crypto = unsafe{ raw_ptr.as_mut().unwrap() };
+    context.prealloc_size = prealloc_size as usize;
 }
 
 #[no_mangle]
@@ -94,14 +102,14 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_process(env: JNIEnv
             println!("decryption of {:?} bytes took {:?}", size, start.elapsed());
             let compressed_size = decrypted.len();
             start = std::time::Instant::now();
-            let decompressed = decompress(decrypted.as_slice());
+            let decompressed = decompress(decrypted.as_slice(), context.prealloc_size);
             println!("decompression of {:?} bytes took {:?}", compressed_size, start.elapsed());
             result_ptr = decompressed.as_ptr();
             result_size = decompressed.len();
             mem::forget(decompressed);
         } else {
             let decrypted = context.process(data);
-            let decompressed = decompress(decrypted.as_slice());
+            let decompressed = decompress(decrypted.as_slice(), context.prealloc_size);
 
             result_ptr = decompressed.as_ptr();
             result_size = decompressed.len();

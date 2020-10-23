@@ -15,6 +15,7 @@ pub(crate) struct Crypto {
     pub(crate) aes: Option<Cfb8<Aes256>>,
     pub(crate) key: Option<Vec<u8>>,
     pub(crate) debug: bool,
+    pub(crate) prealloc_size: usize,
 }
 
 pub(crate) trait CryptoT {

@@ -45,4 +45,12 @@ public class NativeProcessor {
      */
     static native void debug(long ctx, boolean debug);
 
+    /**
+     * How much bytes should be allocate when decompressing?
+     *
+     * @param ctx for which we want to set the prealloc size
+     * @param size which should be used for prealloc
+     */
+    static native void preallocSize(long ctx, int size);
+
 }

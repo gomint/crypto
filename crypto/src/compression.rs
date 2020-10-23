@@ -1,10 +1,10 @@
 use libdeflater::{Compressor, CompressionLvl, Decompressor};
 
-pub fn decompress(data: &[u8]) -> Box<Vec<u8>> {
+pub fn decompress(data: &[u8], prealloc_size: usize) -> Box<Vec<u8>> {
     // Decoding
     let mut decoder = Decompressor::new();
     let mut decoded_data = Box::new(Vec::new());
-    decoded_data.resize(2*1024*1024, 0);
+    decoded_data.resize(prealloc_size, 0);
     let result = decoder.deflate_decompress(data, decoded_data.as_mut_slice());
 
     // Check for error
