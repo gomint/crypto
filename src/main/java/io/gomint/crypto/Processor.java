@@ -35,8 +35,7 @@ public class Processor {
       SizedMemoryPointer dataPointer = new SizedMemoryPointer(pointerAddress, size);
       SizedMemoryPointer processedDataPointer = NativeProcessor.process(this.ctx, dataPointer);
 
-      ByteBuf output = Unpooled.wrappedBuffer(processedDataPointer.getAddress(), processedDataPointer.getSize(), true);
-      return output.retain();
+      return Unpooled.wrappedBuffer(processedDataPointer.getAddress(), processedDataPointer.getSize(), true);
     } finally {
       data.release(); // Release the input since we are done with it and don't need it anymore
     }
