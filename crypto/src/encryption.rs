@@ -1,35 +1,21 @@
 use aesni::Aes256;
 use cfb8::Cfb8;
 use cfb8::stream_cipher::{NewStreamCipher, StreamCipher, InvalidKeyNonceLength};
-use sha2::{Sha256, Digest};
+use sha2::Digest;
 use std::mem;
 use std::io::Write;
 use byteorder::{LittleEndian, WriteBytesExt};
+use std::borrow::BorrowMut;
+use crate::context::Context;
 
 type AesCfb8 = Cfb8<Aes256>;
-
-#[repr(C)]
-pub(crate) struct Crypto {
-    pub(crate) encryption_mode_toggle: bool,
-    pub(crate) counter: i64,
-    pub(crate) aes: Option<Cfb8<Aes256>>,
-    pub(crate) key: Option<Vec<u8>>,
-    pub(crate) debug: bool,
-    pub(crate) prealloc_size: usize,
-}
 
 pub(crate) trait CryptoT {
     fn init_state(&mut self, key: &[u8], iv: &[u8]);
     fn process(&mut self, data: &mut [u8]) -> Box<Vec<u8>>;
 }
 
-impl AsMut<Crypto> for Crypto {
-    fn as_mut(&mut self) -> &mut Crypto {
-        self
-    }
-}
-
-impl CryptoT for Crypto {
+impl CryptoT for Context {
     fn init_state(&mut self, key: &[u8], iv: &[u8]) {
         let a: Result<AesCfb8, InvalidKeyNonceLength> = AesCfb8::new_var(key, iv);
         if a.is_err() {
@@ -49,21 +35,20 @@ impl CryptoT for Crypto {
         let current = self.counter;
         self.counter = self.counter + 1;
 
-        // create a Sha256 object
-        let mut hasher = Sha256::new();
-
         // Write the counter as LE
         let mut bs = [0u8; mem::size_of::<i64>()];
         bs.as_mut()
             .write_i64::<LittleEndian>(current)
             .expect("Unable to write");
 
+        let hasher = self.digest.borrow_mut();
+
         if self.encryption_mode_toggle {
             hasher.update(bs);
             hasher.update(data.as_ref());
             hasher.update(self.key.as_ref().unwrap());
 
-            let result = &hasher.finalize()[..8];
+            let result = &hasher.finalize_reset()[..8];
 
             let mut input: Box<Vec<u8>>  = Box::from(Vec::new());
             input.write_all(data.as_ref()).unwrap();
@@ -83,7 +68,7 @@ impl CryptoT for Crypto {
         hasher.update(self.key.as_ref().unwrap());
 
         let expected = &data[offset..];
-        let result = &hasher.finalize()[..8];
+        let result = &hasher.finalize_reset()[..8];
 
         if expected != result {
             println!("Not matching hash: {:x?} / {:x?}", expected, result);
@@ -92,4 +77,5 @@ impl CryptoT for Crypto {
 
         return Box::from(data[..offset].to_vec())
     }
+
 }

@@ -1,6 +1,7 @@
 package io.gomint.crypto;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 
 public class Processor {
@@ -34,6 +35,10 @@ public class Processor {
 
       SizedMemoryPointer dataPointer = new SizedMemoryPointer(pointerAddress, size);
       SizedMemoryPointer processedDataPointer = NativeProcessor.process(this.ctx, dataPointer);
+
+      if (processedDataPointer.getAddress() == 0 || processedDataPointer.getSize() == 0) {
+        return PooledByteBufAllocator.DEFAULT.directBuffer();
+      }
 
       return Unpooled.wrappedBuffer(processedDataPointer.getAddress(), processedDataPointer.getSize(), true);
     } finally {
