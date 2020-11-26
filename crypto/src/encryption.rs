@@ -1,6 +1,6 @@
 use aesni::Aes256;
 use cfb8::Cfb8;
-use cfb8::stream_cipher::{NewStreamCipher, StreamCipher, InvalidKeyNonceLength};
+use cfb8::cipher::stream::{NewStreamCipher, StreamCipher, InvalidKeyNonceLength};
 use sha2::Digest;
 use std::mem;
 use std::io::Write;
