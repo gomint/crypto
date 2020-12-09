@@ -61,7 +61,7 @@ fn get_class(env: &JNIEnv, class: &str) -> Option<GlobalRef> {
 
 #[no_mangle]
 pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_createNewContext(_env: JNIEnv, _class: JClass, encryption_mode_toggle: jboolean) -> jlong {
-    let ctx = Box::new(Context {
+    let mut ctx = Box::new(Context {
         encryption_mode_toggle: encryption_mode_toggle != 0,
         debug: false,
 
@@ -71,9 +71,15 @@ pub extern "system" fn Java_io_gomint_crypto_NativeProcessor_createNewContext(_e
         digest: Sha256::new(),
 
         prealloc_size: 2 * 1024 * 1024,
-        compressor: Compressor::new(CompressionLvl::default()),
-        decompressor: Decompressor::new(),
+        compressor: None,
+        decompressor: None,
     });
+
+    if ctx.encryption_mode_toggle {
+        ctx.compressor = Some(Compressor::new(CompressionLvl::default()))
+    } else {
+        ctx.decompressor = Some(Decompressor::new())
+    }
 
     let a = ctx.as_ref() as *const Context;
 

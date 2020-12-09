@@ -28,6 +28,10 @@ public class Processor {
     NativeProcessor.debug(this.ctx, debug);
   }
 
+  public void preallocSize(int size) {
+    NativeProcessor.preallocSize(this.ctx, size);
+  }
+
   public ByteBuf process(ByteBuf data) {
     try {
       long pointerAddress = data.memoryAddress() + data.readerIndex();

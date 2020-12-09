@@ -17,8 +17,8 @@ pub(crate) struct Context {
 
     // Compression
     pub(crate) prealloc_size: usize,
-    pub(crate) compressor: Compressor,
-    pub(crate) decompressor: Decompressor,
+    pub(crate) compressor: Option<Compressor>,
+    pub(crate) decompressor: Option<Decompressor>,
 }
 
 impl AsMut<Context> for Context {
