@@ -1,7 +1,7 @@
 use sha2::Sha256;
 use cfb8::Cfb8;
-use aesni::Aes256;
 use libdeflater::{Compressor, Decompressor};
+use aes::Aes256;
 
 #[repr(C)]
 pub(crate) struct Context {

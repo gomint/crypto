@@ -1,4 +1,3 @@
-use aesni::Aes256;
 use cfb8::Cfb8;
 use cfb8::cipher::stream::{NewStreamCipher, StreamCipher, InvalidKeyNonceLength};
 use sha2::Digest;
@@ -7,6 +6,7 @@ use std::io::Write;
 use byteorder::{LittleEndian, WriteBytesExt};
 use std::borrow::BorrowMut;
 use crate::context::Context;
+use aes::Aes256;
 
 type AesCfb8 = Cfb8<Aes256>;
 
