@@ -7,6 +7,7 @@ jobs:
     needs:
       - windows_x64
       - linux_x64
+      - linux_armv7
     name: Maven
     runs-on: ubuntu-latest
     steps:
@@ -18,6 +19,10 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: libcrypto.so
+          path: src/main/resources
+      - uses: actions/download-artifact@master
+        with:
+          name: libcrypto_arm.so
           path: src/main/resources
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v1
@@ -59,7 +64,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install MingW
-        run: sudo apt-get install -y tree binutils
+        run: sudo apt-get install -y binutils
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -78,3 +83,24 @@ jobs:
         with:
           name: libcrypto.so
           path: crypto/target/x86_64-unknown-linux-gnu/release/libcrypto.so
+  linux_armv7:
+    name: Linux ARMv7
+    runs-on: ARM
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: armv7-unknown-linux-gnueabihf
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: install
+          args: xargo
+      - run: xargo build --target armv7-unknown-linux-gnueabihf --release --manifest-path crypto/Cargo.toml
+      - run: strip -s -w -K Java_* crypto/target/armv7-unknown-linux-gnueabihf/release/libcrypto.so
+      - uses: actions/upload-artifact@master
+        with:
+          name: libcrypto_arm.so
+          path: crypto/target/armv7-unknown-linux-gnueabihf/release/libcrypto.so

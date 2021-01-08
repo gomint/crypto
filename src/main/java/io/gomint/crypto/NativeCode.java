@@ -15,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
 import oshi.PlatformEnum;
 import oshi.SystemInfo;
 
@@ -31,9 +32,9 @@ public final class NativeCode {
     /**
      * Create a new native wrapper
      *
-     * @param name       of the native lib we want to load
+     * @param name of the native lib we want to load
      */
-    public NativeCode( String name ) {
+    public NativeCode(String name) {
         this.name = name;
     }
 
@@ -43,40 +44,42 @@ public final class NativeCode {
      * @return true when the native implementation loaded, false otherwise
      */
     public boolean load() {
-        if ( !loaded && isSupported() ) {
+        if (!loaded && isSupported()) {
             String fullName = "gomint-" + name;
 
             try {
-                System.loadLibrary( fullName );
+                System.loadLibrary(fullName);
                 loaded = true;
-            } catch ( Throwable t ) {
+            } catch (Throwable t) {
             }
 
-            if ( !loaded ) {
+            if (!loaded) {
                 String suffix = SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ? ".dll" : ".so";
                 String prefix = SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ? "" : "lib";
-                try ( InputStream soFile = this.getInput( prefix, suffix ) ) {
-                    if ( soFile == null ) {
+                String arch = "arm".equals(System.getProperty("os.arch")) ? "_arm" : "";
+
+                try (InputStream soFile = this.getInput(prefix, arch, suffix)) {
+                    if (soFile == null) {
                         loaded = false;
                         return false;
                     }
 
                     // Else we will create and copy it to a temp file
-                    File temp = File.createTempFile( fullName, suffix );
+                    File temp = File.createTempFile(fullName, suffix);
 
                     // Don't leave cruft on filesystem
                     temp.deleteOnExit();
 
-                    try ( OutputStream outputStream = new FileOutputStream( temp ) ) {
-                        copy( soFile, outputStream );
+                    try (OutputStream outputStream = new FileOutputStream(temp)) {
+                        copy(soFile, outputStream);
                     }
 
-                    System.load( temp.getPath() );
+                    System.load(temp.getPath());
                     loaded = true;
-                } catch ( IOException ex ) {
+                } catch (IOException ex) {
                     // Can't write to tmp?
-                } catch ( UnsatisfiedLinkError ex ) {
-                    System.out.println( "Could not load native library: " + ex.getMessage() );
+                } catch (UnsatisfiedLinkError ex) {
+                    System.out.println("Could not load native library: " + ex.getMessage());
                 }
             }
         }
@@ -84,12 +87,12 @@ public final class NativeCode {
         return loaded;
     }
 
-    private InputStream getInput( String prefix, String suffix ) {
-        InputStream in = NativeCode.class.getClassLoader().getResourceAsStream( prefix + this.name + suffix );
-        if ( in == null ) {
+    private InputStream getInput(String prefix, String arch, String suffix) {
+        InputStream in = NativeCode.class.getClassLoader().getResourceAsStream(prefix + this.name + suffix);
+        if (in == null) {
             try {
-                in = new FileInputStream( "./src/main/resources/" + prefix + this.name + suffix );
-            } catch ( FileNotFoundException e ) {
+                in = new FileInputStream("./src/main/resources/" + prefix + this.name + arch + suffix);
+            } catch (FileNotFoundException e) {
                 // Ignored -.-
             }
         }
@@ -104,9 +107,10 @@ public final class NativeCode {
      */
     private static boolean isSupported() {
         // We currently only support windows and linux x64
-        return ( SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ||
-            SystemInfo.getCurrentPlatformEnum() == PlatformEnum.LINUX ) &&
-            "amd64".equals( System.getProperty( "os.arch" ) );
+        return (SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ||
+                SystemInfo.getCurrentPlatformEnum() == PlatformEnum.LINUX) &&
+                ("amd64".equals(System.getProperty("os.arch")) ||
+                        "arm".equals(System.getProperty("os.arch")));
     }
 
 }
