@@ -93,6 +93,8 @@ jobs:
           toolchain: nightly
           target: armv7-unknown-linux-gnueabihf
           override: true
+        env:
+          RUSTUP_UNPACK_RAM: "104857600"
       - uses: actions-rs/cargo@v1
         with:
           use-cross: true
