@@ -97,7 +97,7 @@ jobs:
         with:
           command: install
           args: xargo
-      - run: xargo build --target armv7-unknown-linux-gnueabihf --release --manifest-path crypto/Cargo.toml
+      - run: xargo build -j 1 --target armv7-unknown-linux-gnueabihf --release --manifest-path crypto/Cargo.toml
       - run: strip -s -w -K Java_* crypto/target/armv7-unknown-linux-gnueabihf/release/libcrypto.so
       - run: mv crypto/target/armv7-unknown-linux-gnueabihf/release/libcrypto.so crypto/target/armv7-unknown-linux-gnueabihf/release/libcrypto_arm.so
       - uses: actions/upload-artifact@master
