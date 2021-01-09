@@ -88,7 +88,7 @@ public final class NativeCode {
     }
 
     private InputStream getInput(String prefix, String arch, String suffix) {
-        InputStream in = NativeCode.class.getClassLoader().getResourceAsStream(prefix + this.name + suffix);
+        InputStream in = NativeCode.class.getClassLoader().getResourceAsStream(prefix + this.name + arch + suffix);
         if (in == null) {
             try {
                 in = new FileInputStream("./src/main/resources/" + prefix + this.name + arch + suffix);
