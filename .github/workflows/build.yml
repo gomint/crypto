@@ -78,7 +78,7 @@ jobs:
       - run: xargo build --target x86_64-pc-windows-msvc --release --manifest-path crypto/Cargo.toml
         env:
           RUSTFLAGS: "-C target-feature=+aes,+ssse3"
-      - run: mv crypto/target/x86_64-pc-windows-msvc/release/crypto.dll crypto/target/x86_64-unknown-linux-gnu/release/windows_crypto_amd64.dll
+      - run: mv crypto/target/x86_64-pc-windows-msvc/release/crypto.dll crypto/target/x86_64-pc-windows-msvc/release/windows_crypto_amd64.dll
       - uses: actions/upload-artifact@master
         with:
           name: windows_crypto_amd64.dll
