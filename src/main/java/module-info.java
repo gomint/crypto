@@ -4,7 +4,7 @@ module gomint.crypto {
 
   requires io.netty.buffer;
   requires oshi.core;
-  requires com.google.common;
+  requires gomint.nativeloader;
   requires io.netty.common;
 
   exports io.gomint.crypto;

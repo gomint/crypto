@@ -8,21 +8,26 @@ jobs:
       - windows_x64
       - linux_x64
       - linux_armv7
+      - mac_arm
     name: Maven
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@master
         with:
-          name: crypto.dll
+          name: windows_crypto_amd64.dll
           path: src/main/resources
       - uses: actions/download-artifact@master
         with:
-          name: libcrypto.so
+          name: linux_crypto_amd64.so
           path: src/main/resources
       - uses: actions/download-artifact@master
         with:
-          name: libcrypto_arm.so
+          name: linux_crypto_arm.so
+          path: src/main/resources
+      - uses: actions/download-artifact@master
+        with:
+          name: macosx_crypto_aarch64.dylib
           path: src/main/resources
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v1
@@ -36,6 +41,26 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+  mac_arm:
+    name: Mac ARM
+    runs-on: darwin-arm64
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: aarch64-apple-darwin
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: xargo
+      - run: xargo build --target aarch64-apple-darwin --release --manifest-path crypto/Cargo.toml
+      - run: mv crypto/target/aarch64-apple-darwin/release/libcrypto.dylib crypto/target/aarch64-apple-darwin/release/macosx_crypto_aarch64.dylib
+      - uses: actions/upload-artifact@master
+        with:
+          name: macosx_crypto_aarch64.dylib
+          path: crypto/target/aarch64-apple-darwin/release/macosx_crypto_aarch64.dylib
   windows_x64:
     name: Windows x64
     runs-on: windows-latest
@@ -43,7 +68,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           target: x86_64-pc-windows-msvc
           override: true
       - uses: actions-rs/cargo@v1
@@ -53,10 +78,11 @@ jobs:
       - run: xargo build --target x86_64-pc-windows-msvc --release --manifest-path crypto/Cargo.toml
         env:
           RUSTFLAGS: "-C target-feature=+aes,+ssse3"
+      - run: mv crypto/target/x86_64-pc-windows-msvc/release/crypto.dll crypto/target/x86_64-unknown-linux-gnu/release/windows_crypto_amd64.dll
       - uses: actions/upload-artifact@master
         with:
-          name: crypto.dll
-          path: crypto/target/x86_64-pc-windows-msvc/release/crypto.dll
+          name: windows_crypto_amd64.dll
+          path: crypto/target/x86_64-pc-windows-msvc/release/windows_crypto_amd64.dll
   linux_x64:
     name: Linux x64
     runs-on: ubuntu-latest
@@ -66,7 +92,7 @@ jobs:
         run: sudo apt-get install -y binutils
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           target: x86_64-unknown-linux-gnu
           override: true
       - uses: actions-rs/cargo@v1
@@ -77,10 +103,11 @@ jobs:
         env:
           RUSTFLAGS: "-C target-feature=+aes,+ssse3"
       - run: strip -s -w -K Java_* crypto/target/x86_64-unknown-linux-gnu/release/libcrypto.so
+      - run: mv crypto/target/x86_64-unknown-linux-gnu/release/libcrypto.so crypto/target/x86_64-unknown-linux-gnu/release/linux_crypto_amd64.so
       - uses: actions/upload-artifact@master
         with:
-          name: libcrypto.so
-          path: crypto/target/x86_64-unknown-linux-gnu/release/libcrypto.so
+          name: linux_crypto_amd64.so
+          path: crypto/target/x86_64-unknown-linux-gnu/release/linux_crypto_amd64.so
   linux_armv7:
     name: Linux ARMv7
     runs-on: ARM
@@ -88,7 +115,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           target: armv7-unknown-linux-gnueabihf
           override: true
         env:
@@ -99,8 +126,8 @@ jobs:
           args: xargo
       - run: xargo build --target armv7-unknown-linux-gnueabihf --release --manifest-path crypto/Cargo.toml
       - run: strip -s -w -K Java_* crypto/target/armv7-unknown-linux-gnueabihf/release/libcrypto.so
-      - run: mv crypto/target/armv7-unknown-linux-gnueabihf/release/libcrypto.so crypto/target/armv7-unknown-linux-gnueabihf/release/libcrypto_arm.so
+      - run: mv crypto/target/armv7-unknown-linux-gnueabihf/release/libcrypto.so crypto/target/armv7-unknown-linux-gnueabihf/release/linux_crypto_arm.so
       - uses: actions/upload-artifact@master
         with:
-          name: libcrypto_arm.so
-          path: crypto/target/armv7-unknown-linux-gnueabihf/release/libcrypto_arm.so
+          name: linux_crypto_arm.so
+          path: crypto/target/armv7-unknown-linux-gnueabihf/release/linux_crypto_arm.so

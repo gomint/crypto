@@ -1,15 +1,20 @@
 package io.gomint.crypto;
 
+import io.gomint.nativeloader.NativeLoader;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
+import oshi.PlatformEnum;
 
 public class Processor {
 
-  private static final NativeCode LOADER = new NativeCode("crypto");
-
   static {
-    if ( !LOADER.load() ) {
+    if ( !NativeLoader.create()
+            .supports(PlatformEnum.WINDOWS, "amd64")
+            .supports(PlatformEnum.LINUX, "amd64")
+            .supports(PlatformEnum.LINUX, "arm")
+            .supports(PlatformEnum.MACOSX, "aarch64")
+            .load("crypto", Processor.class.getClassLoader()) ) {
       throw new RuntimeException("Could not load crypto native extension");
     }
   }
