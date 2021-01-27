@@ -27,7 +27,7 @@ jobs:
           path: src/main/resources
       - uses: actions/download-artifact@master
         with:
-          name: macosx_crypto_aarch64.dylib
+          name: macos_crypto_aarch64.dylib
           path: src/main/resources
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v1
@@ -56,11 +56,11 @@ jobs:
           command: install
           args: xargo
       - run: xargo build --target aarch64-apple-darwin --release --manifest-path crypto/Cargo.toml
-      - run: mv crypto/target/aarch64-apple-darwin/release/libcrypto.dylib crypto/target/aarch64-apple-darwin/release/macosx_crypto_aarch64.dylib
+      - run: mv crypto/target/aarch64-apple-darwin/release/libcrypto.dylib crypto/target/aarch64-apple-darwin/release/macos_crypto_aarch64.dylib
       - uses: actions/upload-artifact@master
         with:
-          name: macosx_crypto_aarch64.dylib
-          path: crypto/target/aarch64-apple-darwin/release/macosx_crypto_aarch64.dylib
+          name: macos_crypto_aarch64.dylib
+          path: crypto/target/aarch64-apple-darwin/release/macos_crypto_aarch64.dylib
   windows_x64:
     name: Windows x64
     runs-on: windows-latest

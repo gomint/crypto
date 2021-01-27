@@ -3,7 +3,7 @@ module gomint.crypto {
   requires jdk.unsupported;
 
   requires io.netty.buffer;
-  requires oshi.core;
+  requires com.github.oshi;
   requires gomint.nativeloader;
   requires io.netty.common;
 

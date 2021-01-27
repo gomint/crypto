@@ -13,7 +13,7 @@ public class Processor {
             .supports(PlatformEnum.WINDOWS, "amd64")
             .supports(PlatformEnum.LINUX, "amd64")
             .supports(PlatformEnum.LINUX, "arm")
-            .supports(PlatformEnum.MACOSX, "aarch64")
+            .supports(PlatformEnum.MACOS, "aarch64")
             .load("crypto", Processor.class.getClassLoader()) ) {
       throw new RuntimeException("Could not load crypto native extension");
     }
