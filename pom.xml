@@ -6,7 +6,7 @@
 
   <groupId>io.gomint</groupId>
   <artifactId>crypto</artifactId>
-  <version>1.4.1-SNAPSHOT</version>
+  <version>1.4.2-SNAPSHOT</version>
 
   <repositories>
     <repository>
@@ -40,7 +40,7 @@
     <dependency>
       <groupId>io.gomint</groupId>
       <artifactId>native-loader</artifactId>
-      <version>1.0.2-SNAPSHOT</version>
+      <version>1.0.3-SNAPSHOT</version>
     </dependency>
 
     <dependency>
