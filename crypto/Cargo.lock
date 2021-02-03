@@ -91,7 +91,7 @@ checksum = "dcb25d077389e53838a8158c8e99174c5a9d902dee4904320db714f3c653ffba"
 
 [[package]]
 name = "crypto"
-version = "1.2.3"
+version = "1.2.4"
 dependencies = [
  "aes",
  "byteorder",
