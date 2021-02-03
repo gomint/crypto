@@ -1,5 +1,4 @@
 use cfb8::Cfb8;
-use cfb8::cipher::stream::{NewStreamCipher, StreamCipher, InvalidKeyNonceLength};
 use sha2::Digest;
 use std::mem;
 use std::io::Write;
@@ -7,6 +6,8 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use std::borrow::BorrowMut;
 use crate::context::Context;
 use aes::Aes256;
+use cfb8::cipher::{AsyncStreamCipher, NewCipher};
+use cfb8::cipher::errors::InvalidLength;
 
 type AesCfb8 = Cfb8<Aes256>;
 
@@ -17,7 +18,7 @@ pub(crate) trait CryptoT {
 
 impl CryptoT for Context {
     fn init_state(&mut self, key: &[u8], iv: &[u8]) {
-        let a: Result<AesCfb8, InvalidKeyNonceLength> = AesCfb8::new_var(key, iv);
+        let a: Result<AesCfb8, InvalidLength> = AesCfb8::new_from_slices(key, iv);
         if a.is_err() {
             println!("Could not init aes: invalid key length {}", key.len());
         }
