@@ -57,7 +57,7 @@ jobs:
         with:
           command: install
           args: xargo
-      - run: xargo build --target aarch64-apple-darwin --release --manifest-path crypto/Cargo.toml
+      - run: xargo +nightly build --target aarch64-apple-darwin --release --manifest-path crypto/Cargo.toml
       - run: mv crypto/target/aarch64-apple-darwin/release/libcrypto.dylib crypto/target/aarch64-apple-darwin/release/macos_crypto_aarch64.dylib
       - uses: actions/upload-artifact@master
         with:
