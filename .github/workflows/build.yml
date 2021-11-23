@@ -116,7 +116,7 @@ jobs:
           path: crypto/target/x86_64-unknown-linux-gnu/release/linux_crypto_amd64.so
   linux_armv7:
     name: Linux ARMv7
-    runs-on: ubuntu-latest
+    runs-on: linux-arm
     steps:
       - uses: actions/checkout@v2
       - name: Install binutils
