@@ -1,15 +1,15 @@
-use cfb8::Cfb8;
 use sha2::Digest;
 use std::mem;
 use std::io::Write;
 use byteorder::{LittleEndian, WriteBytesExt};
 use std::borrow::BorrowMut;
-use crate::context::Context;
-use aes::Aes256;
-use cfb8::cipher::{AsyncStreamCipher, NewCipher};
-use cfb8::cipher::errors::InvalidLength;
+use aes::cipher::errors::InvalidLength;
+use aes::cipher::NewCipher;
+use ctr::cipher::StreamCipher;
 
-type AesCfb8 = Cfb8<Aes256>;
+use crate::context::Context;
+
+type AesCtr = ctr::Ctr128BE<aes::Aes256>;
 
 pub(crate) trait CryptoT {
     fn init_state(&mut self, key: &[u8], iv: &[u8]);
@@ -18,7 +18,7 @@ pub(crate) trait CryptoT {
 
 impl CryptoT for Context {
     fn init_state(&mut self, key: &[u8], iv: &[u8]) {
-        let a: Result<AesCfb8, InvalidLength> = AesCfb8::new_from_slices(key, iv);
+        let a: Result<AesCtr, InvalidLength> = AesCtr::new_from_slices(key, iv);
         if a.is_err() {
             println!("Could not init aes: invalid key length {}", key.len());
         }
@@ -55,12 +55,12 @@ impl CryptoT for Context {
             input.write_all(data.as_ref()).unwrap();
             input.write_all(&result).unwrap();
 
-            aes.encrypt(input.as_mut_slice());
+            aes.apply_keystream(input.as_mut_slice());
             return input;
         }
 
         // decrypt first
-        aes.decrypt(data);
+        aes.apply_keystream(data);
 
         let offset = data.len() - 8;
 

@@ -1,7 +1,6 @@
+
 use sha2::Sha256;
-use cfb8::Cfb8;
 use libdeflater::{Compressor, Decompressor};
-use aes::Aes256;
 
 #[repr(C)]
 pub(crate) struct Context {
@@ -11,7 +10,7 @@ pub(crate) struct Context {
 
     // Encryption
     pub(crate) counter: i64,
-    pub(crate) aes: Option<Cfb8<Aes256>>,
+    pub(crate) aes: Option<ctr::Ctr128BE<aes::Aes256>>,
     pub(crate) key: Option<Vec<u8>>,
     pub(crate) digest: Sha256,
 
