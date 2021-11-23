@@ -43,7 +43,7 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
   mac_arm:
     name: Mac ARM
-    runs-on: macos-latest
+    runs-on: macos-arm64
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
